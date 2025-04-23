@@ -1,0 +1,79 @@
+<html>
+    <head>
+        <title>Buzzer Beater</title>
+        <meta charset="UTF-8">
+        <style>
+            button {
+                width: 99%;
+                display: inline-block;
+                height: 100px;
+                font-size: 30px;
+                overflow: hidden;
+            }
+            #timer {
+                position: absolute;
+                bottom: 0px;
+                right: 0px;
+                margin: 10px;
+            }
+            #strikes {
+                position: absolute;
+                bottom: 0px;
+                left: 0px;
+                margin: 10px;
+            }
+            span {
+                font-family: sans-serif;
+                color: white;
+                font-size: 30px;
+            }
+            .error {
+                width: 35px;
+                height: 35px;
+                margin: 5px;
+                text-align: center;
+                background-color: #C52F21;
+            }
+            #central {
+                margin-left: auto;
+                margin-right: auto;
+                width: 80%;
+                display: flex;
+                justify-content: center;
+            }
+            h1 {
+                color: black
+            }
+            body {
+                background-color: #110B31;
+                color: white;
+            }
+            select {
+                background-color: white;
+                padding: 5px;
+                display: block;
+            }
+            .green {
+                background-color: #4EB31B;
+            }
+            .red {
+                background-color: #9B2318;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- <div id="central"> -->
+            <div>
+                <h1 id="question" style="text-align: center; background-color: D9C800; padding: 20px; border-radius: 10px;">
+                    Paste to Begin
+                </h1>
+                <div id="options"></div>
+                <div id="button-container"></div>
+            </div>
+            <div id="timer" style="font-size: 50px; color: F1F1F1"></div>
+            <div id="strikes" style="display: flex;">
+            </div>
+        <!-- </div> -->
+        <script src="index.js"></script>
+  </body>
+</html>
