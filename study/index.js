@@ -15,20 +15,20 @@ var optionDiv = document.getElementById("options");
 var gameModes = {
     "Buzzer": {
         begin: function() {
-            yesButton = document.createElement("button");
-            yesButton.style.backgroundColor = "#4EB31B";
-            yesButton.addEventListener("click", correct);
-            yesButton.textContent = "Knew";
-            yesButton.style.display = "none";
+            buttons[0] = document.createElement("button");
+            buttons[0].style.backgroundColor = "#4EB31B";
+            buttons[0].addEventListener("click", correct);
+            buttons[0].textContent = "Knew";
+            buttons[0].style.display = "none";
         
-            noButton = document.createElement("button");
-            noButton.style.backgroundColor = "#9B2318";
-            noButton.addEventListener("click", incorrect);
-            noButton.textContent = "Didn't know";
-            noButton.style.display = "none";
+            buttons[1] = document.createElement("button");
+            buttons[1].style.backgroundColor = "#9B2318";
+            buttons[1].addEventListener("click", incorrect);
+            buttons[1].textContent = "Didn't know";
+            buttons[1].style.display = "none";
         
-            buttonContainer.appendChild(yesButton);
-            buttonContainer.appendChild(noButton);
+            buttonContainer.appendChild(buttons[0]);
+            buttonContainer.appendChild(buttons[1]);
             if(shouldShuffle) {
                 shuffle(activeSet);
             }
@@ -40,8 +40,8 @@ var gameModes = {
         askQuestion: function () {
             if(activeSet.length) {
                 mode = "read";
-                yesButton.style.display = "none";
-                noButton.style.display = "none";
+                buttons[0].style.display = "none";
+                buttons[1].style.display = "none";
                 header.textContent = "";
                 var random = Math.floor(Math.random() * activeSet.length);
                 curQuestion = activeSet[random];
@@ -97,8 +97,9 @@ var gameModes = {
             if(mode !== "answer") {
                 return;
             }
+            var isCorrect = (curGame.ansI === i);
             setTimeout(function() {
-                if(curGame.ansI === i) {
+                if(isCorrect) {
                     correct();
                 } else {
                     incorrect();
@@ -106,15 +107,18 @@ var gameModes = {
                 buttons.forEach(function(b) {
                     b.classList.remove("green");
                     b.classList.remove("red");
+                    b.classList.remove("hidden");
                 });
                 mode = "answer";
-            },500);
+            },500 * (isCorrect ? 1 : 2));
             mode = "anim";
             buttons.forEach(function(b,index){
                 if(curGame.ansI === index) {
                     b.classList.add("green");
-                } else {
+                } else if(i === index) {
                     b.classList.add("red");
+                } else {
+                    b.classList.add("hidden");
                 }
             });
         }
@@ -168,8 +172,6 @@ var curGame;
 var reverse = false;
 var shouldShuffle = true;
 var readInt;
-var yesButton;
-var noButton;
 var threshold = 2;
 var strikeThreshold = 2;
 var fallibleJudge = true;
@@ -254,9 +256,29 @@ function ctxt(title, txt) {
     return el;
 }
 function win() {
-
+    header.textContent = "Errors highlighted: " + errorSet.length;
+    if(errorSet.length) {
+        header.textContent += " Click here to review your mistakes!";
+        header.onclick = function() {
+            scores = [];
+            activeSet = errorSet;
+            activeSet.forEach(function(q) {
+                q.addedAlready = false;
+                q.score = 0;
+                q.strikes = 0;
+            })
+            errorSet = [];
+            startGame();
+        }
+    }
+    for(var i = buttons.length-1; i >= 0; i--) {
+        buttons.pop().remove();
+    }
 }
 function startGame() {
+    for(var i = buttons.length-1; i >= 0; i--) {
+        buttons.pop().remove();
+    }
     curGame = gameModes[curMode];
     curGame.begin();
 }
@@ -316,8 +338,9 @@ function incorrect() {
 
     if(curQuestion.strikes) {
         curQuestion.strikes++;
-        if(curQuestion.strikes > strikeThreshold) {
+        if(curQuestion.strikes > strikeThreshold && !curQuestion.addedAlready) {
             errorSet.push(curQuestion);
+            curQuestion.addedAlready = true;
         }
     } else {
         curQuestion.strikes = 1;
@@ -340,8 +363,8 @@ function showAns() {
     header.textContent = curQuestion.a;
     mode = "y/n";
     clearInterval(readInt);
-    yesButton.style.display = "";
-    noButton.style.display = "";
+    buttons[0].style.display = "";
+    buttons[1].style.display = "";
 }
 addEventListener("keydown", function(e) {
     if(e.key === " ") {
