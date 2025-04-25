@@ -120,6 +120,43 @@ var gameModes = {
         }
     }
 };
+var questionSets;
+function loadFilesFromSetsFolder() {
+    var filesObject = {};
+    var filesIndex = 0;
+    var fileNames = ["cats", "churches", "crs-ai", "crs-me", "fp-chapter-content", "general", "isaiah60", "place-names", "rapid-fire", "titles", "whereis"]; // Replace with actual file names
+    
+    function loadNextFile() {
+        if (filesIndex >= fileNames.length) {
+            console.log("All files loaded:", filesObject);
+            questionSets = filesObject;
+            Object.keys(questionSets).forEach(function(key) {
+                var op = document.createElement("option");
+                op.textContent = key;
+                setSelect.appendChild(op);
+            });
+            return;
+        }
+
+        var filePath = "sets/" + fileNames[filesIndex];
+        var xhr = new XMLHttpRequest();
+        
+        xhr.open("GET", filePath, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    filesObject[fileNames[filesIndex]] = xhr.responseText;
+                } else {
+                    console.error("Failed to load file: " + filePath);
+                }
+                filesIndex++;
+                loadNextFile();
+            }
+        };
+        xhr.send();
+    }
+    loadNextFile();
+}
 var modes = [
     "Buzzer",
     // "Learn",
@@ -139,29 +176,26 @@ var fallibleJudge = true;
 var fallibleWait = 250;
 var fallibleTimeout;
 var errorSet = [];
+var setSelect;
 function loadPage() {
     loadOptions();
+    loadFilesFromSetsFolder();
     header.textContent = "Paste to Begin";
 }
 function loadOptions() {
-    /*var setSelect = document.createElement("select");
+    setSelect = document.createElement("select");
     var paste = document.createElement("option");
     paste.textContent = "Paste";
     setSelect.appendChild(paste);
-    questionSets.forEach(function(cur) {
-        var op = document.createElement("option");
-        op.textContent = cur.name;
-        setSelect.appendChild(op)
-    });
     setSelect.addEventListener("input", function() {
-        if(setSelect.selectedIndex === 0) {
-            activeSet = "Paste";
-        } else {
-            activeSet = questionSets[setSelect.selectedIndex-1];
+        if(setSelect.selectedIndex !== 0) {
+            if(!parseSet(questionSets[setSelect.value])) {
+                console.log(questionSets[setSelect.value]);
+            }
         }
     });
     optionDiv.appendChild(setSelect);
-    optionDiv.appendChild(document.createElement("br"));*/
+    optionDiv.appendChild(document.createElement("br"));
 
     var modeSelect = document.createElement("select");
     modes.forEach(function(cur) {
@@ -326,6 +360,9 @@ addEventListener("click", function(e) {
 addEventListener("paste", onPaste);
 function onPaste(e) {
     text = e.clipboardData.getData("text/plain").trim();
+    parseSet(text);
+}
+function parseSet(text) {
     if(text[0] === "[") {
         var newSet = JSON.parse(text);
         activeSet = splitJSON(newSet);
@@ -342,9 +379,11 @@ function onPaste(e) {
         activeSet = split(text);
         scores = [];
         startGame();
+        return true;
     } else {
         header.textContent = "Could not parse";
         console.log(text);
+        return false;
     }
 }
 function split(arr) {
