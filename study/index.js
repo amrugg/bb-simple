@@ -1,4 +1,6 @@
 var mode = "wait";
+var speed = 75;
+var readIndex = 0;
 var header = document.getElementById("question");
 var activeQuestion;
 var index = -1;
@@ -282,8 +284,6 @@ function startGame() {
     curGame = gameModes[curMode];
     curGame.begin();
 }
-var speed = 75;
-var readIndex = 0;
 function randArr(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
