@@ -93,6 +93,7 @@ function cde(type, properties, children)
     
     return el;
 }
+var lastCut = 0;
 var gameModes = {
     "Learn": learnPlay
 };
@@ -258,14 +259,20 @@ function bindToObj(element, obj, key) {
     var tag = element.tagName.toLowerCase();
     var type = element.type;
 
+    // Helper to check if a value is numeric
+    function isNumeric(val) {
+        // Exclude empty strings and null/undefined
+        return val !== '' && !isNaN(val) && !isNaN(parseFloat(val));
+    }
+
     // Helper to get the current value based on element type
     function getElementValue() {
         if (type === 'checkbox') {
             return element.checked;
         } else if (tag === 'select') {
-            return element.value;
+            return convertValue(element.value);
         } else {
-            return element.value;
+            return convertValue(element.value);
         }
     }
 
@@ -280,6 +287,11 @@ function bindToObj(element, obj, key) {
         }
     }
 
+    // Helper to convert value to number if numeric
+    function convertValue(val) {
+        return isNumeric(val) ? Number(val) : val;
+    }
+
     // Initialize value
     if (obj.hasOwnProperty(key)) {
         setElementValue(obj[key]);
@@ -287,10 +299,10 @@ function bindToObj(element, obj, key) {
         obj[key] = getElementValue();
     }
 
-    // Listen for changes and set the object's key to true
+    // Listen for changes and update the object's key with converted value
     var eventName = (type === 'checkbox' || tag === 'select') ? 'change' : 'input';
     element.addEventListener(eventName, function() {
-        obj[key] = true;
+        obj[key] = getElementValue();
     });
 }
 function loadPage() {
@@ -308,42 +320,60 @@ function loadPage() {
     }
     bindToObj(setSelect, settings, "set");
 
+    var cutLen = cde("input", {type: "text", value: 50});
+    bindToObj(cutLen, settings, "cut");
+
+    var beginAt = cde("input", {type: "text", value: 0});
+    bindToObj(beginAt, settings, "begin");
+
+
     var playButton = cde("button", {t: "Play"});
     var settingsEl = cde("div.settingContainer", [
         cde("label", ["Mode: ", modeSelect]),
         cde("label", ["Set: ", setSelect]),
+        cde("label", ["Begin at: ", beginAt]),
+        cde("label", ["Amount: ", cutLen]),
         playButton
     ]);
     playButton.addEventListener("click", function() {
         settingsEl.remove();
         if(settings.set === "Paste") {
-            page.appendChild(cde("p", {t: "Paste to begin..."}));
+            var notif = cde("p", {t: "Paste to begin..."});
+            page.appendChild(notif);
             addEventListener("paste", function(e) {
+                notif.remove();
                 handlePaste(e);
+                if(settings.cut > 0) {
+                    activeSet = activeSet.slice(lastCut, settings.cut);
+                }
                 gameModes[settings.mode]();
             }, {once: true});
         } else {
             activeSet = sets[setSelect.selectedIndex-1].data;
+            if(settings.cut > 0) {
+                activeSet = activeSet.slice(settings.begin-1, settings.begin-1 + settings.cut);
+            }
             gameModes[settings.mode]();
         }
     });
     page.appendChild(settingsEl);
 }
 function learnPlay() {
+    shuffle(activeSet);
     var flashQ = cde("div.flash-card-question");
     var yes = cde("button.flash-btn check", {innerHTML: "&#10003;", onclick: correct});
     var no = cde("button.flash-btn x", {innerHTML: "&#10005;", onclick: incorrect});
     var btnContainer = cde("div.flash-card-buttons", {style: {display: "none"}}, [yes, no]);
-    var cardContent = cde("div.flash-card-content", [flashQ, btnContainer])
+    var cardContent = cde("div.flash-card-content", [flashQ])
     var flashCard = cde("div.flash-card", [cardContent]);
     var index = 0;
     var curQuestion = activeSet[index];
     var front = false;
     var correctArr = [];
     var incorrectArr = [];
+    var curMode = "study";
     function flipCard() {
-        // flashCard.classList.toggle("flipped");
-        // setTimeout(function() {
+        if(curMode === "study") {
             front = !front;
             if(front) {
                 flashQ.textContent = curQuestion.q;
@@ -351,16 +381,33 @@ function learnPlay() {
                 flashQ.textContent = curQuestion.a;
                 btnContainer.style.display = "flex";
             }
-        // }, 250);
+        } else {
+            reset();
+        }
+    }
+    function reset() {
+        flashCard.textContent = "";
+        flashCard.appendChild(cardContent);
+        
+        activeSet = incorrectArr.slice();
+        shuffle(activeSet);
+        correctArr = [];
+        incorrectArr = [];
+        index = -1;
+        curMode = "study";
+        next();
     }
     flashCard.addEventListener("click", flipCard);
     addEventListener("keydown", function(e){
         if(e.code === "Space") {
             flipCard();
-        } else if(e.code === "KeyY") {
-            correct(e);
-        } else if(e.code === "KeyN") {
-            incorrect(e);
+        }
+        if(curMode === "study") {
+            if(e.code === "KeyY") {
+                correct(e);
+            } else if(e.code === "KeyN") {
+                incorrect(e);
+            }
         }
     });
     function correct(e) {
@@ -371,9 +418,16 @@ function learnPlay() {
     function next() {
         ++index;
         curQuestion = activeSet[index];
-        front = false;
-        flipCard();
-        btnContainer.style.display = "none";
+        if(curQuestion) {
+            front = false;
+            flipCard();
+            btnContainer.style.display = "none";   
+        } else {
+            curMode = "wait";
+            flashQ.textContent = "";
+            flashCard.appendChild(cde("p", {t: "Accuracy: " + (100*correctArr.length/activeSet.length) + "%"}));
+            flashCard.appendChild(cde("p", {t: "Hit Space or click to continue"}));
+        }
     }
     function incorrect(e) {
         e.stopPropagation();
@@ -382,6 +436,7 @@ function learnPlay() {
     }
     flipCard();
     page.appendChild(flashCard);
+    page.appendChild(btnContainer);
 }
 loadPage();
 

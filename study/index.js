@@ -17,60 +17,41 @@ var optionDiv = document.getElementById("options");
 var gameModes = {
     "Buzzer": {
         begin: function() {
-            buttons[0] = document.createElement("button");
-            buttons[0].style.backgroundColor = "#4EB31B";
-            buttons[0].addEventListener("click", correct);
-            buttons[0].textContent = "Knew";
-            buttons[0].style.display = "none";
-        
-            buttons[1] = document.createElement("button");
-            buttons[1].style.backgroundColor = "#9B2318";
-            buttons[1].addEventListener("click", incorrect);
-            buttons[1].textContent = "Didn't know";
-            buttons[1].style.display = "none";
-        
-            buttonContainer.appendChild(buttons[0]);
-            buttonContainer.appendChild(buttons[1]);
             if(shouldShuffle) {
                 shuffle(activeSet);
             }
             index = -1;
             strikes = 0;
             score = 0;
-            curGame.askQuestion();
+            askQuestion();
         },
-        askQuestion: function () {
+        askQuestion: function (question) {
             if(activeSet.length) {
                 mode = "read";
-                buttons[0].style.display = "none";
-                buttons[1].style.display = "none";
+                console.log(mode);
+                hideButtons();
                 header.textContent = "";
-                var random = Math.floor(Math.random() * activeSet.length);
-                curQuestion = activeSet[random];
-                curQuestion.i = random;
                 readIndex = 0;
-                readInt = setInterval(read, speed);
+                if(speed) {
+                    readInt = setInterval(read, speed);
+                } else {
+                    header.textContent = curQuestion.q;
+                }
             } else {
                 win();
+            }
+        },
+        answer: function(i) {
+            if(i === 0) {
+                correct();
+            } else {
+                incorrect();
             }
         }
     },
     "Multiple Choice": {
         choices: 4,
         begin: function() {
-            curGame.choices = Math.min(activeSet.length, 4);
-            for(var i = 0; i < curGame.choices; ++i) {
-                var button = document.createElement("button");
-                button.className = "button" + i;
-                buttonContainer.appendChild(button);
-                buttons.push(button);
-                arm(button, i);
-            }
-            function arm(button, i) {
-                button.addEventListener("click", function() {
-                    curGame.answer(i);
-                });
-            }
             fullSet = activeSet.slice();
             if(shouldShuffle) {
                 shuffle(activeSet);
@@ -78,19 +59,26 @@ var gameModes = {
             index = -1;
             strikes = 0;
             score = 0;
-            curGame.askQuestion();
+            askQuestion();
         },
-        askQuestion: function () {
+        askQuestion: function (question, qChoices) {
             if(activeSet.length) {
-                var random = Math.floor(Math.random() * activeSet.length);
-                curQuestion = activeSet[random];
                 mode = "answer";
-                var choices = generateChoices(fullSet, curGame.choices, curQuestion.a);
+                var choices;
+                if(qChoices) {
+                    choices = {choices: qChoices.slice()};
+                    var random = Math.round(Math.random()*qChoices.length);
+                    choices.choices.splice(random,0,question.a);
+                    choices.ansI = random;
+                } else {
+                    choices = generateChoices(fullSet, curGame.choices, question.a);
+                }
                 buttons.forEach(function(b, i) {
                     b.textContent = choices.choices[i];
                 });
                 curGame.ansI = choices.ansI;
-                header.textContent = curQuestion.q;
+                header.textContent = question.q;
+                styleMultiple();
             } else {
                 win();
             }
@@ -111,7 +99,6 @@ var gameModes = {
                     b.classList.remove("red");
                     b.classList.remove("hidden");
                 });
-                mode = "answer";
             },500 * (isCorrect ? 1 : 2));
             mode = "anim";
             buttons.forEach(function(b,index){
@@ -242,6 +229,17 @@ function loadOptions() {
     optionDiv.appendChild(thresholdI);
     optionDiv.appendChild(document.createElement("br"));
 
+    optionDiv.appendChild(ctxt("span", "Read speed: "));
+    var speedI = document.createElement("input");
+    speedI.type = "number";
+    speedI.style.width = "3em";
+    speedI.value = 75;
+    speedI.addEventListener("input", function() {
+        speed = parseInt(speedI.value);
+    });
+    optionDiv.appendChild(speedI);
+    optionDiv.appendChild(document.createElement("br"));
+
     optionDiv.appendChild(ctxt("span", "Fallible Judges: "));
     var fallibleBox = document.createElement("input");
     fallibleBox.type = "checkbox";
@@ -282,6 +280,7 @@ function startGame() {
         buttons.pop().remove();
     }
     curGame = gameModes[curMode];
+    prepareButtons();
     curGame.begin();
 }
 function randArr(arr) {
@@ -309,7 +308,7 @@ function buzz() {
 }
 function buzzIn() {
     fallibleTimeout = false;
-    mode = "think"
+    mode = "think";
     clearInterval(readInt);
     startCountDown();
 }
@@ -327,7 +326,7 @@ function correct() {
             }
         }
     }
-    curGame.askQuestion();
+    askQuestion();
 }
 function incorrect() {
     if(curQuestion.score) {
@@ -345,7 +344,7 @@ function incorrect() {
     } else {
         curQuestion.strikes = 1;
     }
-    curGame.askQuestion();
+    askQuestion();
 }
 function startCountDown() {
     var timerIndex = 5;
@@ -363,8 +362,7 @@ function showAns() {
     header.textContent = curQuestion.a;
     mode = "y/n";
     clearInterval(readInt);
-    buttons[0].style.display = "";
-    buttons[1].style.display = "";
+    styleBuzzer();
 }
 addEventListener("keydown", function(e) {
     if(e.key === " ") {
@@ -397,9 +395,15 @@ function parseSet(text) {
     text = text.replace(/\[/gi,"");
     text = text.replace(/\]/gi,"");
 
-    text = text.split("\n");
-    if(text[0].indexOf("|") > -1) {
+    if(text.indexOf("|") > -1) {
+        text = text.split("\n");
         activeSet = split(text);
+        scores = [];
+        startGame();
+        return true;
+    } else if(text.indexOf("\n\n") > -1) {
+        text = text.split("\n\n");
+        activeSet = splitEnters(text);
         scores = [];
         startGame();
         return true;
@@ -409,6 +413,26 @@ function parseSet(text) {
         return false;
     }
 }
+function splitEnters(arr) {
+    var set = [];
+    for(var i = 0; i < arr.length; i++) {
+        if(arr[i].indexOf("\n") < 1) {
+            console.log("Failed on " + i + ", skipping");
+            continue;
+        }
+        var cur = arr[i].split("\n");
+        if(cur.length === 2) {
+            if(reverse) {
+                set.push({q: cur[1], a: cur[0], type: "buzzer"});
+            } else {
+                set.push({q: cur[0], a: cur[1], type: "buzzer"});
+            }
+        } else {
+            set.push({q: cur[0], a: cur[1], choices: cur.slice(2), type: "choice"});
+        }
+    }
+    return set;
+}
 function split(arr) {
     var set = [];
     for(var i = 0; i < arr.length; i++) {
@@ -417,9 +441,9 @@ function split(arr) {
         }
         var cur = arr[i].split("|");
         if(reverse) {
-            set.push({q: cur[1], a: cur[0]});
+            set.push({q: cur[1], a: cur[0], type: "buzzer"});
         } else {
-            set.push({q: cur[0], a: cur[1]});
+            set.push({q: cur[0], a: cur[1], type: "buzzer"});
         }
     }
     return set;
@@ -428,9 +452,9 @@ function splitJSON(arr) {
     var set = [];
     for(var i = 0; i < arr.length; i++) {
         if(reverse) {
-            set.push({q: arr[i][1], a: arr[i][0]});
+            set.push({q: arr[i][1], a: arr[i][0], type: "buzzer"});
         } else {
-            set.push({q: arr[i][0], a: arr[i][1]});
+            set.push({q: arr[i][0], a: arr[i][1], type: "buzzer"});
         }
     }
     return set;
@@ -475,3 +499,61 @@ function generateChoices(arr, count, ans) {
     return {choices: choices, ansI: ansI};
 }
 loadPage();
+function askQuestion() {
+    if(activeSet.length) {
+        var random = Math.floor(Math.random() * activeSet.length);
+        curQuestion = activeSet[random];
+        curQuestion.i = random;
+        
+        if(curQuestion.type === "buzzer") {
+            curGame = gameModes["Buzzer"];
+            curGame.askQuestion(curQuestion);
+        } else if(curQuestion.type === "choice") {
+            curGame = gameModes["Multiple Choice"];
+            curGame.askQuestion(curQuestion, curQuestion.choices);
+        }
+    } else {
+        win();
+    }
+}
+function styleBuzzer() {
+    buttons.forEach(function(b,i) {
+        if(i === 0) {
+            b.style.backgroundColor = "#4EB31B";
+            b.textContent = "Knew";
+            b.style.display = "block";
+        } else if(i === 1) {
+            b.style.backgroundColor = "#9B2318";
+            b.textContent = "Didn't know";
+            b.style.display = "block";
+        } else {
+            b.style.display = "none";
+        }
+    });
+}
+function styleMultiple() {
+    buttons.forEach(function(b,i) {
+        b.style.backgroundColor = "";
+        b.style.display = "block";
+    });
+}
+function prepareButtons() {
+    curGame.choices = 4;
+    for(var i = 0; i < curGame.choices; ++i) {
+        var button = document.createElement("button");
+        button.className = "button" + i;
+        buttonContainer.appendChild(button);
+        buttons.push(button);
+        arm(button, i);
+    }
+    function arm(button, i) {
+        button.addEventListener("click", function() {
+            curGame.answer(i);
+        });
+    }
+}
+function hideButtons() {
+    buttons.forEach(function(b,i) {
+        b.style.display = "none";
+    });
+}
