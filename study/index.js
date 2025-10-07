@@ -402,7 +402,7 @@ function parseSet(text) {
         startGame();
         return true;
     } else if(text.indexOf("\n\n") > -1) {
-        text = text.split("\n\n");
+        text = text.split(/\n\n+/g);
         activeSet = splitEnters(text);
         scores = [];
         startGame();
