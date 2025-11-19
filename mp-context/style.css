@@ -1,0 +1,167 @@
+/* Table Styles */
+table {
+    width: 80%;
+    border-collapse: collapse;
+    margin: 20px auto;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+}
+
+table, th, td {
+    border: 1px solid #dcdcdc;
+}
+
+th, td {
+    padding: 8px 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+    color: #333;
+}
+
+td {
+    vertical-align: top;
+    background-color: #fff;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+
+/* Font Styles */
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    line-height: 1.6;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+}
+
+h1, h2, h3, h4 {
+    color: #333;
+    display: inline;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    margin-right: 10px;
+}
+
+h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+h2 {
+    font-size: 26px;
+    margin-bottom: 8px;
+}
+
+h3 {
+    font-size: 20px;
+    margin-bottom: 6px;
+}
+
+h4 {
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+/* Heading Styles */
+h1 {
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 10px;
+}
+
+h2 {
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 8px;
+}
+
+h3 {
+    margin-top: 20px;
+}
+
+/* Select Element Styles */
+select {
+    width: 200px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 14px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    transition: border-color 0.3s ease;
+}
+
+select:hover,
+select:focus {
+    border-color: #0078d4;
+    outline: none;
+}
+
+/* Input/Buttons */
+input[type="text"], input[type="number"], input[type="email"], textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    background-color: #fff;
+}
+
+input[type="text"]:focus, input[type="number"]:focus, input[type="email"]:focus, textarea:focus {
+    border-color: #0078d4;
+    outline: none;
+}
+
+/* Button Styles */
+button {
+    padding: 10px 15px;
+    border: none;
+    background-color: #0078d4;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+button:hover {
+    background-color: #005a8b;
+}
+
+.saveButton {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+td.big {
+    width: 10%;
+}
+td {
+    width: 50%;
+}
+
+.linkPanel {
+    margin: 0 auto;
+    display: flex;
+    width: 80%;
+    justify-content: space-between;
+}
+
+.text {
+    display: none;
+}
+body.showText .text {
+    display: block;
+}
+body.showText .notes {
+    display: none;
+}

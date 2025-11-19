@@ -16,6 +16,7 @@ var curQuestion;
 var optionDiv = document.getElementById("options");
 var gameModes = {
     "Buzzer": {
+        desc: "Actually same as buzzer",
         begin: function() {
             if(shouldShuffle) {
                 shuffle(activeSet);
@@ -50,6 +51,7 @@ var gameModes = {
         }
     },
     "Multiple Choice": {
+        desc: "Actually same as buzzer",
         choices: 4,
         begin: function() {
             fullSet = activeSet.slice();
@@ -111,7 +113,32 @@ var gameModes = {
                 }
             });
         }
-    }
+    },
+    "Order": {
+        desc: "A very simple tool to test whether you know the order of a list.",
+        begin: function() {
+            index = -1;
+            strikes = 0;
+            score = 0;
+            askQuestion();
+            hideButtons();
+        },
+        askQuestion: function () {
+            mode = "order";
+            if(++index >= activeSet.length) {
+                win()
+            } else {
+                header.textContent = activeSet[index];
+            }
+        },
+        answer: function(i) {
+            if(i === 0) {
+                correct();
+            } else {
+                incorrect();
+            }
+        }
+    },
 };
 var questionSets;
 function loadFilesFromSetsFolder() {
@@ -150,12 +177,6 @@ function loadFilesFromSetsFolder() {
     }
     loadNextFile();
 }
-var modes = [
-    "Buzzer",
-    // "Learn",
-    "Multiple Choice",
-    // "Rapid Rush"
-];
 var curMode = "Buzzer";
 var curGame;
 var reverse = false;
@@ -189,9 +210,11 @@ function loadOptions() {
     optionDiv.appendChild(document.createElement("br"));
 
     var modeSelect = document.createElement("select");
+    var modes = Object.keys(gameModes);
     modes.forEach(function(cur) {
         var op = document.createElement("option");
         op.textContent = cur;
+        op.title = gameModes[cur].desc;
         modeSelect.appendChild(op)
     });
     modeSelect.addEventListener("input", function() {
@@ -260,7 +283,6 @@ function win() {
     if(errorSet.length) {
         header.textContent += " Click here to review your mistakes!";
         header.onclick = function() {
-            scores = [];
             activeSet = errorSet;
             activeSet.forEach(function(q) {
                 q.addedAlready = false;
@@ -294,7 +316,9 @@ function read() {
     header.textContent += curQuestion.q[readIndex++];
 }
 function buzz() {
-    if(mode === "read") {
+    if(mode === "order") {
+        askQuestion();
+    } else if(mode === "read") {
         if(fallibleJudge && !fallibleTimeout) {
             var fallibleTimeout = setTimeout(buzzIn, fallibleWait);
         } else {
@@ -373,10 +397,8 @@ addEventListener("keydown", function(e) {
         incorrect();
     }
 });
-addEventListener("click", function(e) {
-    if(e.key === " ") {
-        buzz();
-    }
+header.addEventListener("click", function(e) {
+    buzz();
 });
 addEventListener("paste", onPaste);
 function onPaste(e) {
@@ -384,10 +406,24 @@ function onPaste(e) {
     parseSet(text);
 }
 function parseSet(text) {
+    if(curMode === "Order") {
+        if(text.includes("→")) {
+            activeSet = text.split("→");
+        } else if(text.includes(";")) {
+            activeSet = text.split(";");
+        } else {
+            activeSet = text.split(",");
+        }
+        if(activeSet.length > 1) {
+            startGame();
+        } else {
+            alert("Could not parse for Order mode.");
+        }
+        return
+    }
     if(text[0] === "[") {
         var newSet = JSON.parse(text);
         activeSet = splitJSON(newSet);
-        scores = [];
         startGame();
         return;
     }
@@ -398,13 +434,11 @@ function parseSet(text) {
     if(text.indexOf("|") > -1) {
         text = text.split("\n");
         activeSet = split(text);
-        scores = [];
         startGame();
         return true;
     } else if(text.indexOf("\n\n") > -1) {
         text = text.split(/\n\n+/g);
         activeSet = splitEnters(text);
-        scores = [];
         startGame();
         return true;
     } else {
@@ -501,6 +535,10 @@ function generateChoices(arr, count, ans) {
 loadPage();
 function askQuestion() {
     if(activeSet.length) {
+        if(curMode === "Order") {
+            return curGame.askQuestion(curQuestion);
+        }
+
         var random = Math.floor(Math.random() * activeSet.length);
         curQuestion = activeSet[random];
         curQuestion.i = random;
