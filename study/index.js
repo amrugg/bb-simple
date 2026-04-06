@@ -154,6 +154,7 @@ var gameModes = {
 var questionSets;
 var playButton = document.getElementById("play");
 playButton.addEventListener("click", function() {
+    playButton.blur();
     parseSet(questionSets[setSelect.value]);
     if(activeSet) {
         startGame();
