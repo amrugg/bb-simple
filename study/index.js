@@ -154,6 +154,7 @@ var gameModes = {
 var questionSets;
 var playButton = document.getElementById("play");
 playButton.addEventListener("click", function() {
+    parseSet(questionSets[setSelect.value]);
     if(activeSet) {
         startGame();
     } else {
@@ -175,7 +176,6 @@ function loadFilesFromSetsFolder() {
                 setSelect.appendChild(op);
             });
             setSelect.selectedIndex = 1;
-            parseSet(questionSets[setSelect.value]);
             return;
         }
 
@@ -326,6 +326,7 @@ function win() {
     }
 }
 function startGame() {
+    clearInterval(readInt);
     for(var i = buttons.length-1; i >= 0; i--) {
         buttons.pop().remove();
     }
