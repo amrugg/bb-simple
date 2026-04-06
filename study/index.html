@@ -3,7 +3,7 @@
         <title>Buzzer Beater</title>
         <meta charset="UTF-8">
         <style>
-            button {
+            #button-container button {
                 width: 99%;
                 display: inline-block;
                 height: 100px;
@@ -62,15 +62,27 @@
             .hidden {
                 opacity: 0.1;
             }
+            details {
+                margin-top: 10px;
+            }
+            #play {
+                margin-top: 5px;
+                font-size: 24px;
+            }
         </style>
     </head>
     <body>
         <!-- <div id="central"> -->
             <div>
                 <h1 id="question" style="text-align: center; background-color: D9C800; padding: 20px; border-radius: 10px;">
-                    Paste to Begin
+                    Select a Set
                 </h1>
                 <div id="options"></div>
+                <details>
+                    <summary>Advanced Options</summary>
+                    <div id="options-adv"></div>
+                </details>
+                <button id=play>Play</button>
                 <div id="button-container"></div>
             </div>
             <div id="timer" style="font-size: 50px; color: F1F1F1"></div>

@@ -14,46 +14,17 @@ var fullSet;
 var buttonContainer = document.getElementById("button-container");
 var curQuestion;
 var optionDiv = document.getElementById("options");
+var advOptionDiv = document.getElementById("options-adv");
 var gameModes = {
-    "Buzzer": {
-        desc: "Actually same as buzzer",
-        begin: function() {
-            if(shouldShuffle) {
-                shuffle(activeSet);
-            }
-            index = -1;
-            strikes = 0;
-            score = 0;
-            askQuestion();
-        },
-        askQuestion: function (question) {
-            if(activeSet.length) {
-                mode = "read";
-                console.log(mode);
-                hideButtons();
-                header.textContent = "";
-                readIndex = 0;
-                if(speed) {
-                    readInt = setInterval(read, speed);
-                } else {
-                    header.textContent = curQuestion.q;
-                }
-            } else {
-                win();
-            }
-        },
-        answer: function(i) {
-            if(i === 0) {
-                correct();
-            } else {
-                incorrect();
-            }
-        }
-    },
     "Multiple Choice": {
-        desc: "Actually same as buzzer",
+        desc: "4 choices for each option",
         choices: 4,
         begin: function() {
+            activeSet = activeSet.map(function(e) {
+                e.type = "choice";
+                // e.choices = generateChoices(activeSet, 4, e.a);
+                return e;
+            });
             fullSet = activeSet.slice();
             if(shouldShuffle) {
                 shuffle(activeSet);
@@ -114,6 +85,41 @@ var gameModes = {
             });
         }
     },
+    "Buzzer": {
+        desc: "Hit Spacebar to buzz in, say your answer (preferably verbally) and then hit space bar again. If you were right, hit Y, Space, or click Knew. If not, hit N or click Didn't Know.",
+        begin: function() {
+            if(shouldShuffle) {
+                shuffle(activeSet);
+            }
+            index = -1;
+            strikes = 0;
+            score = 0;
+            askQuestion();
+        },
+        askQuestion: function (question) {
+            if(activeSet.length) {
+                mode = "read";
+                console.log(mode);
+                hideButtons();
+                header.textContent = "";
+                readIndex = 0;
+                if(speed) {
+                    readInt = setInterval(read, speed);
+                } else {
+                    header.textContent = curQuestion.q;
+                }
+            } else {
+                win();
+            }
+        },
+        answer: function(i) {
+            if(i === 0) {
+                correct();
+            } else {
+                incorrect();
+            }
+        }
+    },
     "Order": {
         desc: "A very simple tool to test whether you know the order of a list.",
         begin: function() {
@@ -141,10 +147,18 @@ var gameModes = {
     },
 };
 var questionSets;
+var playButton = document.getElementById("play");
+playButton.addEventListener("click", function() {
+    if(activeSet) {
+        startGame();
+    } else {
+        header.textContent = "Select a set first!";
+    }
+});
 function loadFilesFromSetsFolder() {
     var filesObject = {};
     var filesIndex = 0;
-    var fileNames = ["cats", "churches", "crs-ai", "crs-me", "fp-chapter-content", "general", "isaiah60", "place-names", "rapid-fire", "titles", "whereis"]; // Replace with actual file names
+    var fileNames = ["Verses & Headings (#1)","Verses & Headings (#2)","Verses & Headings (#3)","Verses & Headings (#4)","Verses & Headings (Full)"].map(function(e){return e.replace("#", "%23")});
     
     function loadNextFile() {
         if (filesIndex >= fileNames.length) {
@@ -155,6 +169,7 @@ function loadFilesFromSetsFolder() {
                 op.textContent = key;
                 setSelect.appendChild(op);
             });
+            setSelect.selectedIndex = 1;
             return;
         }
 
@@ -165,7 +180,8 @@ function loadFilesFromSetsFolder() {
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
-                    filesObject[fileNames[filesIndex]] = xhr.responseText;
+
+                    filesObject[fileNames[filesIndex].replace("%23", "#")] = xhr.responseText;
                 } else {
                     console.error("Failed to load file: " + filePath);
                 }
@@ -177,12 +193,12 @@ function loadFilesFromSetsFolder() {
     }
     loadNextFile();
 }
-var curMode = "Buzzer";
+var curMode = "Multiple Choice";
 var curGame;
 var reverse = false;
 var shouldShuffle = true;
 var readInt;
-var threshold = 2;
+var threshold = 1;
 var strikeThreshold = 2;
 var fallibleJudge = true;
 var fallibleWait = 250;
@@ -192,7 +208,6 @@ var setSelect;
 function loadPage() {
     loadOptions();
     loadFilesFromSetsFolder();
-    header.textContent = "Paste to Begin";
 }
 function loadOptions() {
     setSelect = document.createElement("select");
@@ -208,51 +223,58 @@ function loadOptions() {
     });
     optionDiv.appendChild(setSelect);
     optionDiv.appendChild(document.createElement("br"));
+    paste.disabled = true;
 
+    /// Mode Select
     var modeSelect = document.createElement("select");
     var modes = Object.keys(gameModes);
     modes.forEach(function(cur) {
         var op = document.createElement("option");
         op.textContent = cur;
         op.title = gameModes[cur].desc;
-        modeSelect.appendChild(op)
+        modeSelect.appendChild(op);
+        if(cur === "Order") {
+            op.disabled = true;
+        }
     });
     modeSelect.addEventListener("input", function() {
         curMode = modes[modeSelect.selectedIndex];
-    })
+    });
     optionDiv.appendChild(modeSelect);
-    optionDiv.appendChild(ctxt("span", "Reverse: "));
+    modeSelect.value = curMode;
+
+    advOptionDiv.appendChild(ctxt("span", "Reverse: "));
     var reverseBox = document.createElement("input");
     reverseBox.type = "checkbox";
     reverseBox.addEventListener("input", function() {
         reverse = reverseBox.checked;
     });
-    optionDiv.appendChild(reverseBox);
-    optionDiv.appendChild(document.createElement("br"));
+    advOptionDiv.appendChild(reverseBox);
+    advOptionDiv.appendChild(document.createElement("br"));
 
-    optionDiv.appendChild(ctxt("span", "Shuffle: "));
+    advOptionDiv.appendChild(ctxt("span", "Shuffle: "));
     var shuffleBox = document.createElement("input");
     shuffleBox.type = "checkbox";
     shuffleBox.checked = true;
     shuffleBox.addEventListener("input", function() {
         shouldShuffle = shuffleBox.checked;
     });
-    optionDiv.appendChild(shuffleBox);
+    advOptionDiv.appendChild(shuffleBox);
 
 
-    optionDiv.appendChild(document.createElement("br"));
-    optionDiv.appendChild(ctxt("span", "Win Threshold: "));
+    advOptionDiv.appendChild(document.createElement("br"));
+    advOptionDiv.appendChild(ctxt("span", "Win Threshold: "));
     var thresholdI = document.createElement("input");
     thresholdI.type = "number";
     thresholdI.style.width = "3em";
-    thresholdI.value = 2;
+    thresholdI.value = threshold;
     thresholdI.addEventListener("input", function() {
         threshold = parseInt(thresholdI.value);
     });
-    optionDiv.appendChild(thresholdI);
-    optionDiv.appendChild(document.createElement("br"));
+    advOptionDiv.appendChild(thresholdI);
+    advOptionDiv.appendChild(document.createElement("br"));
 
-    optionDiv.appendChild(ctxt("span", "Read speed: "));
+    advOptionDiv.appendChild(ctxt("span", "Read speed: "));
     var speedI = document.createElement("input");
     speedI.type = "number";
     speedI.style.width = "3em";
@@ -260,17 +282,17 @@ function loadOptions() {
     speedI.addEventListener("input", function() {
         speed = parseInt(speedI.value);
     });
-    optionDiv.appendChild(speedI);
-    optionDiv.appendChild(document.createElement("br"));
+    advOptionDiv.appendChild(speedI);
+    advOptionDiv.appendChild(document.createElement("br"));
 
-    optionDiv.appendChild(ctxt("span", "Fallible Judges: "));
+    advOptionDiv.appendChild(ctxt("span", "Fallible Judges: "));
     var fallibleBox = document.createElement("input");
     fallibleBox.type = "checkbox";
     fallibleBox.checked = true;
     fallibleBox.addEventListener("input", function() {
         fallibleJudge = fallibleBox.checked;
     });
-    optionDiv.appendChild(fallibleBox);
+    advOptionDiv.appendChild(fallibleBox);
     
 }
 function ctxt(title, txt) {
@@ -291,7 +313,7 @@ function win() {
             })
             errorSet = [];
             startGame();
-        }
+        };
     }
     for(var i = buttons.length-1; i >= 0; i--) {
         buttons.pop().remove();
@@ -415,7 +437,7 @@ function parseSet(text) {
             activeSet = text.split(",");
         }
         if(activeSet.length > 1) {
-            startGame();
+            header.textContent = "Hit Play!";
         } else {
             alert("Could not parse for Order mode.");
         }
@@ -424,7 +446,7 @@ function parseSet(text) {
     if(text[0] === "[") {
         var newSet = JSON.parse(text);
         activeSet = splitJSON(newSet);
-        startGame();
+        header.textContent = "Hit Play!";
         return;
     }
     text = text.replace(/\t/gi, "|");
@@ -434,12 +456,12 @@ function parseSet(text) {
     if(text.indexOf("|") > -1) {
         text = text.split("\n");
         activeSet = split(text);
-        startGame();
+        header.textContent = "Hit Play!";
         return true;
     } else if(text.indexOf("\n\n") > -1) {
         text = text.split(/\n\n+/g);
         activeSet = splitEnters(text);
-        startGame();
+        header.textContent = "Hit Play!";
         return true;
     } else {
         header.textContent = "Could not parse";
