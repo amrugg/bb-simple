@@ -88,6 +88,11 @@ var gameModes = {
     "Buzzer": {
         desc: "Hit Spacebar to buzz in, say your answer (preferably verbally) and then hit space bar again. If you were right, hit Y, Space, or click Knew. If not, hit N or click Didn't Know.",
         begin: function() {
+            activeSet = activeSet.map(function(e) {
+                e.type = "buzzer";
+                // e.choices = generateChoices(activeSet, 4, e.a);
+                return e;
+            });
             if(shouldShuffle) {
                 shuffle(activeSet);
             }
@@ -158,7 +163,7 @@ playButton.addEventListener("click", function() {
 function loadFilesFromSetsFolder() {
     var filesObject = {};
     var filesIndex = 0;
-    var fileNames = ["Verses & Headings (#1)","Verses & Headings (#2)","Verses & Headings (#3)","Verses & Headings (#4)","Verses & Headings (Full)"].map(function(e){return e.replace("#", "%23")});
+    var fileNames = ["Verses & Headings (#1)","Verses & Headings (#2)","Verses & Headings (#3)","Verses & Headings (#4)","Verses & Headings (Full)", "Buzzer Questions #1"].map(function(e){return e.replace("#", "%23")});
     
     function loadNextFile() {
         if (filesIndex >= fileNames.length) {
@@ -170,6 +175,7 @@ function loadFilesFromSetsFolder() {
                 setSelect.appendChild(op);
             });
             setSelect.selectedIndex = 1;
+            parseSet(questionSets[setSelect.value]);
             return;
         }
 
