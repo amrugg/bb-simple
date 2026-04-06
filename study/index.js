@@ -327,6 +327,7 @@ function win() {
     }
 }
 function startGame() {
+    header.onclick = false;
     clearInterval(readInt);
     for(var i = buttons.length-1; i >= 0; i--) {
         buttons.pop().remove();
