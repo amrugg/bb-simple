@@ -255,13 +255,16 @@ function loadOptions() {
     optionDiv.appendChild(modeSelect);
     modeSelect.value = curMode;
 
-    advOptionDiv.appendChild(ctxt("span", "Reverse: "));
+    
+    var reverseLabel = document.createElement("label");
+    reverseLabel.appendChild(ctxt("span", "Reverse: "));
     var reverseBox = document.createElement("input");
     reverseBox.type = "checkbox";
     reverseBox.addEventListener("input", function() {
         reverse = reverseBox.checked;
     });
-    advOptionDiv.appendChild(reverseBox);
+    reverseLabel.appendChild(reverseBox);
+    advOptionDiv.appendChild(reverseLabel);
     advOptionDiv.appendChild(document.createElement("br"));
 
     advOptionDiv.appendChild(ctxt("span", "Shuffle: "));
