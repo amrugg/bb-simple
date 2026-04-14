@@ -19,13 +19,18 @@ var gameModes = {
     "Multiple Choice": {
         desc: "4 choices for each option",
         choices: 4,
-        begin: function() {
+        begin: function(errorSet) {
+            if(errorSet) {
+                activeSet = errorSet;
+            }
             activeSet = activeSet.map(function(e) {
                 e.type = "choice";
-                // e.choices = generateChoices(activeSet, 4, e.a);
+                //e.choices = generateChoices(activeSet, 4, e.a);
                 return e;
             });
-            fullSet = activeSet.slice();
+            if(!errorSet) {
+                fullSet = activeSet.slice();
+            }
             if(shouldShuffle) {
                 shuffle(activeSet);
             }
@@ -165,7 +170,7 @@ playButton.addEventListener("click", function() {
 function loadFilesFromSetsFolder() {
     var filesObject = {};
     var filesIndex = 0;
-    var fileNames = ["Verses & Headings (#1)","Verses & Headings (#2)","Verses & Headings (#3)","Verses & Headings (#4)","Verses & Headings (Full)", "Buzzer Questions #1"].map(function(e){return e.replace("#", "%23")});
+    var fileNames = ["Verses & Headings (#1)","Verses & Headings (#2)","Verses & Headings (#3)","Verses & Headings (#4)","Verses & Headings (Full)", "Buzzer Questions #1", "Buzzer Questions #2"].map(function(e){return e.replace("#", "%23")});
     
     function loadNextFile() {
         if (filesIndex >= fileNames.length) {
@@ -206,7 +211,7 @@ var reverse = false;
 var shouldShuffle = true;
 var readInt;
 var threshold = 1;
-var strikeThreshold = 2;
+var strikeThreshold = 0;
 var fallibleJudge = true;
 var fallibleWait = 250;
 var fallibleTimeout;
@@ -312,21 +317,20 @@ function win() {
     if(errorSet.length) {
         header.textContent += " Click here to review your mistakes!";
         header.onclick = function() {
-            activeSet = errorSet;
-            activeSet.forEach(function(q) {
+            errorSet.forEach(function(q) {
                 q.addedAlready = false;
                 q.score = 0;
                 q.strikes = 0;
-            })
+            });
+            startGame(errorSet);
             errorSet = [];
-            startGame();
         };
     }
     for(var i = buttons.length-1; i >= 0; i--) {
         buttons.pop().remove();
     }
 }
-function startGame() {
+function startGame(errorSet) {
     header.onclick = false;
     clearInterval(readInt);
     for(var i = buttons.length-1; i >= 0; i--) {
@@ -334,7 +338,7 @@ function startGame() {
     }
     curGame = gameModes[curMode];
     prepareButtons();
-    curGame.begin();
+    curGame.begin(errorSet);
 }
 function randArr(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
