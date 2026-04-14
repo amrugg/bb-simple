@@ -211,7 +211,7 @@ var reverse = false;
 var shouldShuffle = true;
 var readInt;
 var threshold = 1;
-var strikeThreshold = 0;
+var strikeThreshold = 1;
 var fallibleJudge = true;
 var fallibleWait = 250;
 var fallibleTimeout;
