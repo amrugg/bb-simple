@@ -399,12 +399,12 @@ function incorrect() {
 
     if(curQuestion.strikes) {
         curQuestion.strikes++;
-        if(curQuestion.strikes > strikeThreshold && !curQuestion.addedAlready) {
-            errorSet.push(curQuestion);
-            curQuestion.addedAlready = true;
-        }
     } else {
         curQuestion.strikes = 1;
+    }
+    if(curQuestion.strikes > strikeThreshold && !curQuestion.addedAlready) {
+        errorSet.push(curQuestion);
+        curQuestion.addedAlready = true;
     }
     askQuestion();
 }
