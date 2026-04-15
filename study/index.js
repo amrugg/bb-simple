@@ -159,6 +159,7 @@ var gameModes = {
 var questionSets;
 var playButton = document.getElementById("play");
 playButton.addEventListener("click", function() {
+    errorSet = [];
     playButton.blur();
     parseSet(questionSets[setSelect.value]);
     if(activeSet) {
@@ -170,7 +171,7 @@ playButton.addEventListener("click", function() {
 function loadFilesFromSetsFolder() {
     var filesObject = {};
     var filesIndex = 0;
-    var fileNames = ["Verses & Headings (#1)","Verses & Headings (#2)","Verses & Headings (#3)","Verses & Headings (#4)","Verses & Headings (Full)", "Buzzer Questions #1", "Buzzer Questions #2"].map(function(e){return e.replace("#", "%23")});
+    var fileNames = ["Verses & Headings (#1)","Verses & Headings (#2)","Verses & Headings (#3)","Verses & Headings (#4)","Verses & Headings (Full)", "Verses & Headings (Tricky)", "Buzzer Questions #1", "Buzzer Questions #2"].map(function(e){return e.replace("#", "%23")});
     
     function loadNextFile() {
         if (filesIndex >= fileNames.length) {
