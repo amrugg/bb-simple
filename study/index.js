@@ -182,7 +182,6 @@ function loadFilesFromSetsFolder() {
                 op.textContent = key;
                 setSelect.appendChild(op);
             });
-            setSelect.selectedIndex = 1;
             return;
         }
 
@@ -236,7 +235,7 @@ function loadOptions() {
     });
     optionDiv.appendChild(setSelect);
     optionDiv.appendChild(document.createElement("br"));
-    paste.disabled = true;
+    // paste.disabled = true;
 
     /// Mode Select
     var modeSelect = document.createElement("select");
@@ -442,7 +441,9 @@ header.addEventListener("click", function(e) {
 addEventListener("paste", onPaste);
 function onPaste(e) {
     text = e.clipboardData.getData("text/plain").trim();
-    parseSet(text);
+    if(parseSet(text)) {
+        startGame();
+    }
 }
 function parseSet(text) {
     if(curMode === "Order") {
