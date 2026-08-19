@@ -315,18 +315,15 @@
                 var set = {a: [], b: [], options: []};
                 for(var i = 0; i < arr.length; i++) {
                     var cur = arr[i].split("|");
-                    if(cur.length !== 2) {
-                        alert("Something went wrong at index " + i + ", skipping");
-                        continue;
-                    }
+                    var lastIndex = cur.length-1;
                     if(document.getElementById("reverse").checked) {
                         set.b.push(cur[0]);
-                        set.a.push(cur[1]);
+                        set.a.push(cur[lastIndex]);
                         set.options.push(cur[0]);
                     } else {
                         set.a.push(cur[0]);
-                        set.b.push(cur[1]);
-                        set.options.push(cur[1]);
+                        set.b.push(cur[lastIndex]);
+                        set.options.push(cur[lastIndex]);
                     }
                 }
                 return set;
