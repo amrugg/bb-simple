@@ -1,3 +1,11 @@
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
 /* Table Styles */
 table {
     width: 80%;
@@ -136,12 +144,6 @@ button:hover {
     background-color: #005a8b;
 }
 
-.saveButton {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-}
-
 td.big {
     width: 10%;
 }
@@ -164,4 +166,92 @@ body.showText .text {
 }
 body.showText .notes {
     display: none;
+}
+
+.top-right-menu {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+.top-right-menu button {
+    margin: 0 5px;
+}
+.selectIndexCont {
+    position: absolute;
+    right: 10px;
+    top: 55px;
+}
+input[type="number"].selectIndexVal {
+    display: inline;
+    width: 3.5em;
+}
+input[type="number"].selectIndexVal::-webkit-inner-spin-button,
+input[type="number"].selectIndexVal::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.searchMenu {
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    transform: translateY(100vh);
+    transition: transform 0.3s ease-in-out;
+    pointer-events: none;
+    padding: 30px;
+    
+    display: flex;
+    flex-direction: column;
+    padding: 20px 50px; /* 20px vertical, 50px horizontal */
+    overflow: auto;
+}
+.searchMenu select{
+    margin-bottom: 10px;
+}
+.searchMenu.active {
+    transform: translateY(0px);
+    pointer-events: auto;
+}
+.searchMenu button {
+    width: fit-content;
+}
+.searchBar {
+    margin-bottom: 20px;
+}
+.result {
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+    border-collapse: collapse;
+    margin: -2px;
+    cursor: pointer;
+}
+.highlight {
+    background-color: yellow;
+}
+
+.modal-close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    color: #8A9BB3;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.modal-close:focus {
+    box-shadow: none;
+}
+
+.modal-close:hover {
+    color: #60A5FA;
+    background: none;
+    box-shadow: none;
 }

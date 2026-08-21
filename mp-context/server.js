@@ -302,7 +302,6 @@ createServer(function(req, res)
 
     // Load a set
     if (pathname === '/load') {
-        console.log(parsedUrl);
         var set = parsedUrl.query.split("=")[1];
         if (!set) {
             res.writeHead(400, {'Content-Type': 'text/plain'});
@@ -311,7 +310,6 @@ createServer(function(req, res)
         }
         var file = getSetFile(set);
         fs.readFile(file, function(err, data) {
-            console.log(err,data);
             if (err) {
                 res.writeHead(404, {'Content-Type': 'application/json'});
                 res.end('[]');
