@@ -4,7 +4,6 @@ var readIndex = 0;
 var header = document.getElementById("question");
 var activeQuestion;
 var index = -1;
-var strikes = 0;
 var score = 0;
 var strikeContainer = document.getElementById("strikes");
 var buttons = [];
@@ -16,6 +15,43 @@ var curQuestion;
 var optionDiv = document.getElementById("options");
 var advOptionDiv = document.getElementById("options-adv");
 var gameModes = {
+    "Mixed": {
+        desc: "Supports a mix of multiple choice and buzzer in the same set. To be used if you have a mixed set, not for Quizlet sets or the like.",
+        begin: function() {
+            debugger;
+            if(shouldShuffle) {
+                shuffle(activeSet);
+            }
+            index = -1;
+            score = 0;
+            askQuestion();
+        },
+        askQuestion: function (question) {
+            if(activeSet.length) {
+                console.log(question);
+                debugger
+                mode = "read";
+                console.log(mode);
+                hideButtons();
+                header.textContent = "";
+                readIndex = 0;
+                if(speed) {
+                    readInt = setInterval(read, speed);
+                } else {
+                    header.textContent = curQuestion.q;
+                }
+            } else {
+                win();
+            }
+        },
+        answer: function(i) {
+            if(i === 0) {
+                correct();
+            } else {
+                incorrect();
+            }
+        }
+    },
     "Multiple Choice": {
         desc: "4 choices for each option",
         choices: 4,
@@ -35,7 +71,6 @@ var gameModes = {
                 shuffle(activeSet);
             }
             index = -1;
-            strikes = 0;
             score = 0;
             askQuestion();
         },
@@ -102,7 +137,6 @@ var gameModes = {
                 shuffle(activeSet);
             }
             index = -1;
-            strikes = 0;
             score = 0;
             askQuestion();
         },
@@ -134,7 +168,6 @@ var gameModes = {
         desc: "A very simple tool to test whether you know the order of a list.",
         begin: function() {
             index = -1;
-            strikes = 0;
             score = 0;
             askQuestion();
             hideButtons();
@@ -205,7 +238,7 @@ function loadFilesFromSetsFolder() {
     }
     loadNextFile();
 }
-var curMode = "Multiple Choice";
+var curMode = "Mixed";
 var curGame;
 var reverse = false;
 var shouldShuffle = true;
