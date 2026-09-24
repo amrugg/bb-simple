@@ -346,6 +346,9 @@
                     reviewBtn.hidden = false;
                     reviewBtn.textContent = "Review Incorrect Questions (" + wrongSetArr.length + ")";
                     reviewBtn.onclick = function() {
+                        console.log(wrongSetArr.reduce(function(str, e) {
+                            return str + e + "\n"
+                        }, ""));
                         activeSet = split(wrongSetArr, false);
                         activeSet.options = savedSets.original.options;
                         beginGame();
