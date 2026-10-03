@@ -510,7 +510,7 @@ function parseSet(text) {
     text = text.replace(/\]/gi,"");
 
     if(text.indexOf("|") > -1) {
-        text = text.replace(/(\|.+<=?)\n(?!\n)/g, "\n\n").replaceAll("|","\n");
+        text = text.replace(/(?<=\|.+)\n(?!\n)/g, "\n\n").replaceAll("|","\n");
     }
     try {
         text = text.split(/\n\n+/g);
