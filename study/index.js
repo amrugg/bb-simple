@@ -17,8 +17,10 @@ var advOptionDiv = document.getElementById("options-adv");
 var gameModes = {
     "Mixed": {
         desc: "Supports a mix of multiple choice and buzzer in the same set. To be used if you have a mixed set, not for Quizlet sets or the like.",
-        begin: function() {
-            debugger;
+        begin: function(errorSet) {
+            if(errorSet) {
+                activeSet = errorSet;
+            }
             if(shouldShuffle) {
                 shuffle(activeSet);
             }
@@ -128,6 +130,9 @@ var gameModes = {
     "Buzzer": {
         desc: "Hit Spacebar to buzz in, say your answer (preferably verbally) and then hit space bar again. If you were right, hit Y, Space, or click Knew. If not, hit N or click Didn't Know.",
         begin: function() {
+            if(errorSet) {
+                activeSet = errorSet;
+            }
             activeSet = activeSet.map(function(e) {
                 e.type = "buzzer";
                 // e.choices = generateChoices(activeSet, 4, e.a);
@@ -505,18 +510,17 @@ function parseSet(text) {
     text = text.replace(/\]/gi,"");
 
     if(text.indexOf("|") > -1) {
-        text = text.split("\n");
-        activeSet = split(text);
-        header.textContent = "Hit Play!";
-        return true;
-    } else if(text.indexOf("\n\n") > -1) {
+        text = text.replace(/(\|.+<=?)\n(?!\n)/g, "\n\n").replaceAll("|","\n");
+    }
+    try {
         text = text.split(/\n\n+/g);
         activeSet = splitEnters(text);
         header.textContent = "Hit Play!";
         return true;
-    } else {
+    } catch(e) {
         header.textContent = "Could not parse";
         console.log(text);
+        console.log(e);
         return false;
     }
 }
