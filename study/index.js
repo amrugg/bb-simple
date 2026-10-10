@@ -255,6 +255,34 @@ var fallibleWait = 250;
 var fallibleTimeout;
 var errorSet = [];
 var setSelect;
+var OPTIONS_KEY = "bbStudyOptions";
+
+function optionsAvailable() {
+    try { return typeof localStorage !== "undefined" && !!localStorage; } catch(e) { return false; }
+}
+
+function readOptions() {
+    if(!optionsAvailable()) { return {}; }
+    try {
+        var raw = localStorage.getItem(OPTIONS_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch(e) { return {}; }
+}
+
+function saveOptions() {
+    if(!optionsAvailable()) { return; }
+    try {
+        localStorage.setItem(OPTIONS_KEY, JSON.stringify({
+            mode: curMode,
+            reverse: reverse,
+            shuffle: shouldShuffle,
+            threshold: threshold,
+            speed: speed,
+            fallibleJudge: fallibleJudge
+        }));
+    } catch(e) { console.log("Could not save options:", e); }
+}
+
 function loadPage() {
     loadOptions();
     loadFilesFromSetsFolder();
@@ -289,6 +317,7 @@ function loadOptions() {
     });
     modeSelect.addEventListener("input", function() {
         curMode = modes[modeSelect.selectedIndex];
+        saveOptions();
     });
     optionDiv.appendChild(modeSelect);
     modeSelect.value = curMode;
@@ -300,6 +329,7 @@ function loadOptions() {
     reverseBox.type = "checkbox";
     reverseBox.addEventListener("input", function() {
         reverse = reverseBox.checked;
+        saveOptions();
     });
     reverseLabel.appendChild(reverseBox);
     advOptionDiv.appendChild(reverseLabel);
@@ -308,9 +338,10 @@ function loadOptions() {
     advOptionDiv.appendChild(ctxt("span", "Shuffle: "));
     var shuffleBox = document.createElement("input");
     shuffleBox.type = "checkbox";
-    shuffleBox.checked = true;
+    shuffleBox.checked = shouldShuffle;
     shuffleBox.addEventListener("input", function() {
         shouldShuffle = shuffleBox.checked;
+        saveOptions();
     });
     advOptionDiv.appendChild(shuffleBox);
 
@@ -323,6 +354,7 @@ function loadOptions() {
     thresholdI.value = threshold;
     thresholdI.addEventListener("input", function() {
         threshold = parseInt(thresholdI.value);
+        saveOptions();
     });
     advOptionDiv.appendChild(thresholdI);
     advOptionDiv.appendChild(document.createElement("br"));
@@ -331,9 +363,10 @@ function loadOptions() {
     var speedI = document.createElement("input");
     speedI.type = "number";
     speedI.style.width = "3em";
-    speedI.value = 75;
+    speedI.value = speed;
     speedI.addEventListener("input", function() {
         speed = parseInt(speedI.value);
+        saveOptions();
     });
     advOptionDiv.appendChild(speedI);
     advOptionDiv.appendChild(document.createElement("br"));
@@ -341,12 +374,21 @@ function loadOptions() {
     advOptionDiv.appendChild(ctxt("span", "Fallible Judges: "));
     var fallibleBox = document.createElement("input");
     fallibleBox.type = "checkbox";
-    fallibleBox.checked = true;
+    fallibleBox.checked = fallibleJudge;
     fallibleBox.addEventListener("input", function() {
         fallibleJudge = fallibleBox.checked;
+        saveOptions();
     });
     advOptionDiv.appendChild(fallibleBox);
-    
+
+    // Restore saved options
+    var opts = readOptions();
+    if(opts.mode) { curMode = opts.mode; modeSelect.value = opts.mode; }
+    if(opts.reverse !== undefined) { reverse = opts.reverse; reverseBox.checked = opts.reverse; }
+    if(opts.shuffle !== undefined) { shouldShuffle = opts.shuffle; shuffleBox.checked = opts.shuffle; }
+    if(opts.threshold !== undefined) { threshold = opts.threshold; thresholdI.value = opts.threshold; }
+    if(opts.speed !== undefined) { speed = opts.speed; speedI.value = opts.speed; }
+    if(opts.fallibleJudge !== undefined) { fallibleJudge = opts.fallibleJudge; fallibleBox.checked = opts.fallibleJudge; }
 }
 function ctxt(title, txt) {
     var el = document.createElement(title);
