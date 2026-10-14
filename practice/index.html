@@ -154,18 +154,41 @@
                 activeSet = splitJSON(base);
             }
             var settingsEl = document.getElementById("settings");
+            var reverseInput = document.getElementById("reverse");
+            var savedSettings = {};
+            try {
+                savedSettings = JSON.parse(localStorage.getItem("bbSettings") || "{}");
+            } catch(e) {}
+            function saveSettings() {
+                localStorage.setItem("bbSettings", JSON.stringify({
+                    passTime: Number(timeInput.value),
+                    passScore: Number(scoreInput.value),
+                    inARow: rowInput.checked,
+                    reverse: reverseInput.checked
+                }));
+            }
             var timeInput = document.getElementById("timeInput");
             timeInput.addEventListener("input", function(){
                 settings.passTime = Number(timeInput.value);
+                saveSettings();
             });
             var scoreInput = document.getElementById("scoreInput");
             scoreInput.addEventListener("input", function(){
                 settings.passScore = Number(scoreInput.value);
+                saveSettings();
             });
             var rowInput = document.getElementById("rowInput");
             rowInput.addEventListener("input", function(){
                 settings.inARow = Number(rowInput.checked);
+                saveSettings();
             });
+            reverseInput.addEventListener("input", function(){
+                saveSettings();
+            });
+            if(savedSettings.passTime) { timeInput.value = savedSettings.passTime; }
+            if(savedSettings.passScore) { scoreInput.value = savedSettings.passScore; }
+            if(savedSettings.inARow !== undefined) { rowInput.checked = !!savedSettings.inARow; }
+            if(savedSettings.reverse !== undefined) { reverseInput.checked = !!savedSettings.reverse; }
             var buttons = [document.getElementById("b1"), document.getElementById("b2"), document.getElementById("b3"), document.getElementById("b4")];
             buttons.forEach(function(button) {
                 button.addEventListener("click", function(e) {
@@ -206,6 +229,9 @@
                 passScore: 2, ///correct answers before completing question
                 inARow: true ///answers have to be correct in a row else it counts as failure
             };
+            if(savedSettings.passTime) settings.passTime = Number(timeInput.value);
+            if(savedSettings.passScore) settings.passScore = Number(scoreInput.value);
+            if(savedSettings.inARow !== undefined) settings.inARow = Number(rowInput.checked);
             function askQuestion(skip) {
                 var randQ = randInt(0, activeSet.a.length-1);
                 if(activeSet.a.length > 2) {
