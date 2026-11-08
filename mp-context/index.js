@@ -555,6 +555,17 @@
     });
 
     function getJSON(url, callback) {
+        /// HACK
+        function call(arg) {
+            setTimeout(callback, 1, null, arg);
+        }
+        if(url === "/sets"){
+            call(["Senior_MPs"]);
+        } else if(url.startsWith("/load")) {
+            call(window._globalSets.Senior_MPs);
+        }
+        return;
+        /// HACK END
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.onreadystatechange = function() {
